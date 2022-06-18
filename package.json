@@ -1,0 +1,17 @@
+{
+  "name": "guardian-visualization",
+  "version": "1.0.0",
+  "description": "View a graph of frequency a given keyword is found in The Guardian articles.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "chart",
+    "visualization",
+    "article",
+    "guardian"
+  ],
+  "author": "Jamie Phillips",
+  "license": "ISC"
+}
