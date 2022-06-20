@@ -10,6 +10,7 @@ async function getArticles() {
   let toDate = toDateInput.value;
 
   const data = { search, fromDate, toDate };
+  console.log(JSON.stringify(data));
   let url = "/api?" + new URLSearchParams(data).toString();
   console.log(url);
   let response = await fetch(url);

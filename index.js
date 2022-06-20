@@ -6,7 +6,7 @@ const port = 3000;
 
 app.listen(port, () => {
   console.log(`Listening on port ${port}`);
-  guardian.test();
+  guardian.updateDB(new Date("1800-01-01"));
 });
 
 app.use(express.static("public"));
