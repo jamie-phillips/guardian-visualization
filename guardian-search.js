@@ -6,12 +6,43 @@ require("dotenv").config();
 const apiKey = process.env.API_KEY;
 var MongoClient = mongodb.MongoClient;
 const dbUrl = "mongodb://127.0.0.1:27017/";
+const client = new MongoClient(dbUrl);
+const tempCollection = client.db("articles").collection("tempData");
+const articlesCollection = client.db("articles").collection("articleData");
+
+const testCollection = client.db("test").collection("testData");
+
+async function searchDB(fromDate, toDate, search) {
+  let response = [];
+  let ISOfromDate = new Date(fromDate).toISOString();
+  let newToDate = new Date(toDate);
+  newToDate.setDate(newToDate.getDate() + 1);
+  let ISOtoDate = newToDate.toISOString();
+
+  try {
+    await client.connect();
+
+    const query = {
+      $text: { $search: search },
+      webPublicationDate: { $gte: ISOfromDate, $lt: ISOtoDate },
+    };
+    const sort = { webPublicationDate: 1 };
+    const projection = { webPublicationDate: 1 };
+    const cursor = articlesCollection
+      .find(query)
+      .sort(sort)
+      .project(projection);
+    response = await cursor.toArray();
+    console.log(response);
+  } catch (err) {
+    console.log(err);
+  } finally {
+    await client.close();
+    return response;
+  }
+}
 
 async function updateDB(lastSearchDate) {
-  const client = new MongoClient(dbUrl);
-  const tempCollection = client.db("articles").collection("tempData");
-  const articlesCollection = client.db("articles").collection("articleData");
-
   try {
     // Set yesterday as yesterday's date at 00:00:00
     let today = new Date();
@@ -153,7 +184,7 @@ async function mergeCollections(collection, tempCollection) {
   await collection.insertMany(await tempCollection.find().toArray());
 }
 
-module.exports = { updateDB };
+module.exports = { updateDB, searchDB };
 
 /* 
 TODO:

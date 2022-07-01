@@ -11,13 +11,16 @@ const searchDataFP = "./searchData.json";
 
 app.listen(port, async () => {
   console.log(`Listening on port ${port}`);
-  await createIndex();
 });
 
 app.use(express.static("public"));
 
-app.get("/api", (req, res) => {
-  res.json(req.query);
+app.get("/api", async (req, res) => {
+  const fromDate = req.query.fromDate;
+  const toDate = req.query.toDate;
+  const search = req.query.search;
+  searchRes = await guardian.searchDB(fromDate, toDate, search);
+  res.json(searchRes);
 });
 
 schedule.scheduleJob("0 1 * * *", async () => {
