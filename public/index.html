@@ -5,15 +5,21 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.8.0/dist/chart.min.js"></script>
     <script src="script.js" async></script>
+
     <title>Document</title>
   </head>
   <body>
-    <div>
+    <div id="inputs">
       <input type="text" name="search" id="search" />
       <input type="date" name="fromDate" id="fromDate" />
       <input type="date" name="toDate" id="toDate" />
+      <input type="text" name="interval" id="interval" />
       <button id="test-button">Submit</button>
+    </div>
+    <div id="chart">
+      <canvas id="myChart"></canvas>
     </div>
   </body>
 </html>

@@ -1,5 +1,12 @@
-body div {
+#inputs {
   width: 50%;
   display: flex;
   flex-direction: column;
+}
+
+#chart {
+  position: relative;
+  margin: auto;
+  height: 20vh;
+  width: 80vw;
 }

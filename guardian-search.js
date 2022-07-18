@@ -1,196 +1,146 @@
 const fetch = require("node-fetch");
-const sema = require("async-sema");
-const mongodb = require("mongodb");
-require("dotenv").config();
+const { RateLimit } = require("async-sema");
 
-const apiKey = process.env.API_KEY;
-var MongoClient = mongodb.MongoClient;
-const dbUrl = "mongodb://127.0.0.1:27017/";
-const client = new MongoClient(dbUrl);
-const tempCollection = client.db("articles").collection("tempData");
-const articlesCollection = client.db("articles").collection("articleData");
+const limit = RateLimit(1000, { uniformDistribution: false });
 
-const testCollection = client.db("test").collection("testData");
+const apiKey = "test";
 
-async function searchDB(fromDate, toDate, search) {
-  let response = [];
-  let ISOfromDate = new Date(fromDate).toISOString();
-  let newToDate = new Date(toDate);
-  newToDate.setDate(newToDate.getDate() + 1);
-  let ISOtoDate = newToDate.toISOString();
+let validDays = require("./days.json");
+let validMonths = require("./months.json");
+let validYears = require("./years.json");
 
-  try {
-    await client.connect();
+Date.prototype.addDays = function (days) {
+  var date = new Date(this.valueOf());
+  date.setUTCDate(date.getUTCDate() + days);
+  return date;
+};
 
-    const query = {
-      $text: { $search: search },
-      webPublicationDate: { $gte: ISOfromDate, $lt: ISOtoDate },
-    };
-    const sort = { webPublicationDate: 1 };
-    const projection = { webPublicationDate: 1 };
-    const cursor = articlesCollection
-      .find(query)
-      .sort(sort)
-      .project(projection);
-    response = await cursor.toArray();
-    console.log(response);
-  } catch (err) {
-    console.log(err);
-  } finally {
-    await client.close();
-    return response;
+Date.prototype.addMonths = function (months) {
+  var date = new Date(this.valueOf());
+  date.setUTCMonth(date.getUTCMonth() + months);
+  return date;
+};
+
+Date.prototype.addYears = function (years) {
+  var date = new Date(this.valueOf());
+  date.setUTCFullYear(date.getUTCFullYear() + years);
+  return date;
+};
+
+Date.prototype.toISODateString = function (interval) {
+  var date = new Date(this.valueOf());
+  switch (interval) {
+    case "year":
+      return date.toISOString().slice(0, 4);
+    case "month":
+      return date.toISOString().slice(0, 7);
+    default:
+      return date.toISOString().slice(0, 10);
   }
+};
+
+async function fetchFromGuardian(params) {
+  const searchParams = new URLSearchParams(params).toString();
+  const url = `https://content.guardianapis.com/search?${searchParams}`;
+
+  const response = await fetch(url);
+  return await response.json();
 }
 
-async function updateDB(lastSearchDate) {
-  try {
-    // Set yesterday as yesterday's date at 00:00:00
-    let today = new Date();
-    let yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    yesterday.setHours(0, 0, 0, 0);
-
-    // if today has already been searhed then return false
-    if (lastSearchDate > yesterday) {
-      throw "lastSearchDate is the same or after yesterday's date";
-    }
-
-    await client.connect(); // Connect to MongoDB database
-    tempCollection.deleteMany({}); // Delete all documents in tempData collection
-
-    let requestsQueue = [];
-
-    let startYear = lastSearchDate.getFullYear();
-    let endYear = yesterday.getFullYear();
-    let startMonth;
-    let endMonth;
-    let startDay;
-    let endDay;
-
-    for (let year = startYear; year <= endYear; year++) {
-      startMonth = year == startYear ? lastSearchDate.getMonth() + 1 : 1;
-      endMonth = year == endYear ? yesterday.getMonth() + 1 : 12;
-      for (let month = startMonth; month <= endMonth; month++) {
-        startDay =
-          year == startYear && month == startMonth
-            ? lastSearchDate.getDate()
-            : 1;
-        endDay =
-          year == endYear && month == endMonth
-            ? yesterday.getDate()
-            : daysInMonth(month, year);
-        for (let day = startDay; day <= endDay; day++) {
-          let date = `${year}-${month}-${day}`;
-          let params = {
-            "from-date": date,
-            "to-date": date,
-            "page-size": 1,
-            "api-key": apiKey,
-          };
-          console.log(date);
-          let response = await guardianSearch(params);
-          let total = response.response.total;
-          let i = 1;
-          while (total > 0) {
-            let pageSize = total > 200 ? 200 : total;
-            requestsQueue.push({
-              "from-date": date,
-              "to-date": date,
-              "page-size": pageSize,
-              page: i,
-              "order-by": "oldest",
-              "show-blocks": "body",
-              "api-key": apiKey,
-            });
-            total -= pageSize;
-            i++;
-          }
-        }
-      }
-    }
-
-    let count = 0;
-    while (requestsQueue.length > 0) {
-      if (count > 5) {
-        throw "Requests failed more than 5 times";
-      }
-      requestsQueue = await fetchRequests(requestsQueue, tempCollection);
-      count++;
-    }
-
-    await mergeCollections(articlesCollection, tempCollection);
-
-    client.close();
-    return true;
-  } catch (e) {
-    console.error(e);
-    await client.close();
-    return false;
-  }
+async function multipleFetch(params) {
+  let response = await Promise.all(
+    params.map((param) => fetchFromGuardian(param))
+  );
+  return response;
 }
 
-async function fetchRequests(requestsQueue, collection) {
-  noResponseQueue = [];
-  for (let i = 0; i < requestsQueue.length; i++) {
-    let currentRequest = requestsQueue[i];
-    let response = await guardianSearch(currentRequest);
-    console.log(response);
-    if (response.response.status != "ok") {
-      noResponseQueue.push(currentRequest);
+async function search(search, fromDate, toDate, interval) {
+  let currentDate = new Date(fromDate);
+  let endDate = new Date(toDate);
+  let searchData = [];
+  let results = {};
+  while (currentDate <= endDate) {
+    let searchFromDate = currentDate.toISODateString();
+    let searchToDate;
+    switch (interval) {
+      case "year":
+        searchToDate = currentDate.addYears(1).addDays(-1).toISODateString();
+        break;
+      case "month":
+        searchToDate = currentDate.addMonths(1).addDays(-1).toISODateString();
+        break;
+      case "week":
+        break;
+      default:
+        searchToDate = searchFromDate;
+        break;
+    }
+
+    if (checkDate(currentDate, interval)) {
+      const params = {
+        "api-key": apiKey,
+        "page-size": 0,
+        "from-date": searchFromDate,
+        "to-date": searchToDate,
+        q: search,
+      };
+      searchData.push(params);
     } else {
-      let articles = response.response.results;
-      let formattedArticles = [];
-      for (let article of articles) {
-        let bodyTextSummary = "";
-        let bodies = article.blocks.body;
-        for (let body of bodies) {
-          bodyTextSummary += `${body.bodyTextSummary} `;
-        }
-        let formattedArticle = {
-          webTitle: article.webTitle,
-          webUrl: article.webUrl,
-          apiUrl: article.apiUrl,
-          webPublicationDate: article.webPublicationDate,
-          bodyTextSummary: bodyTextSummary,
-        };
-        formattedArticles.push(formattedArticle);
-      }
-      await inputData(collection, formattedArticles);
+      let resDate = new Date(searchFromDate);
+      results[resDate.toISODateString(interval)] = 0;
+    }
+
+    switch (interval) {
+      case "year":
+        currentDate = currentDate.addYears(1);
+        break;
+      case "month":
+        currentDate = currentDate.addMonths(1);
+        break;
+      case "week":
+        break;
+      default:
+        currentDate = currentDate.addDays(1);
+        break;
     }
   }
-  return noResponseQueue;
+
+  for (let i = 0; i < searchData.length; i += 50) {
+    const paramsArr = searchData.slice(i, i + 50);
+    let response = await multipleFetch(paramsArr);
+    for (let j = 0; j < paramsArr.length; j++) {
+      let count = response[j].response.total;
+      let searchDate = paramsArr[j]["from-date"];
+      let resDate = new Date(searchDate);
+      results[resDate.toISODateString(interval)] = count;
+    }
+  }
+  console.log(results);
+  return results;
 }
 
-async function guardianSearch(params) {
-  let searchParams = new URLSearchParams(params).toString();
-  let url = `https://content.guardianapis.com/search?${searchParams}`;
-  let response = await fetch(url);
-  let json = await response.json();
-  return json;
+function checkDate(date, interval) {
+  if (date >= new Date("1999-01-01")) {
+    return true;
+  }
+  switch (interval) {
+    case "year":
+      if (!validYears.includes(date.toISODateString())) {
+        return false;
+      }
+      break;
+    case "month":
+      if (!validMonths.includes(date.toISODateString())) {
+        return false;
+      }
+      break;
+    case "day":
+      if (!validDays.includes(date.toISODateString())) {
+        return false;
+      }
+      break;
+  }
+  return true;
 }
 
-function daysInMonth(month, year) {
-  let isLeapYear = year % 4 || (year % 100 === 0 && year % 400) ? 0 : 1;
-  let daysInMonth =
-    month === 2 ? 28 + isLeapYear : 31 - (((month - 1) % 7) % 2);
-  return daysInMonth;
-}
-
-async function inputData(collection, obj) {
-  await collection.insertMany(obj);
-}
-
-async function mergeCollections(collection, tempCollection) {
-  await collection.insertMany(await tempCollection.find().toArray());
-}
-
-module.exports = { updateDB, searchDB };
-
-/* 
-TODO:
- - use fetchRequests() for inital totals for each day - DONE
- - extract data for each article ready for database - DONE
- - input data into database - DONE
-
- - implement search database functionality
-*/
+module.exports = { search };
