@@ -21,4 +21,5 @@ app.get("/api", async (req, res) => {
   const interval = req.query.interval;
   let searchRes = await guardian.search(search, fromDate, toDate, interval);
   res.json(searchRes);
+  console.log("Response sent");
 });

@@ -115,7 +115,6 @@ async function search(search, fromDate, toDate, interval) {
       results[resDate.toISODateString(interval)] = count;
     }
   }
-  console.log(results);
   return results;
 }
 
