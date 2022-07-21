@@ -1,8 +1,5 @@
 const express = require("express");
 const guardian = require("./guardian-search.js");
-const fs = require("fs");
-const schedule = require("node-schedule");
-const { text } = require("express");
 
 const app = express();
 const port = 3000;

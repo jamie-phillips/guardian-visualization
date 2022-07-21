@@ -99,6 +99,8 @@ function changeInterval(interval, button) {
 }
 
 async function getArticles() {
+  guardianChart.data.datasets.pop();
+  guardianChart.update();
   let search = searchInput.value;
   let fromDate = fromDatePicker.getDate();
   let toDate = toDatePicker.getDate();
@@ -110,7 +112,6 @@ async function getArticles() {
   let response = await fetch(url);
   let jsonResponse = await response.json();
 
-  guardianChart.data.datasets.pop();
   guardianChart.data.datasets.push({
     data: jsonResponse,
     backgroundColor: primaryColour,

@@ -40,6 +40,28 @@ Date.prototype.toISODateString = function (interval) {
   }
 };
 
+function addLeadingZero(num) {
+  if (num < 10) {
+    return `0${num}`;
+  } else {
+    return num;
+  }
+}
+
+Date.prototype.toFormattedString = function (interval) {
+  var date = new Date(this.valueOf());
+  switch (interval) {
+    case "year":
+      return date.getUTCFullYear();
+    case "month":
+      return date.toUTCString().slice(8, 16);
+    case "day":
+      return `${addLeadingZero(date.getUTCDate())}/${addLeadingZero(
+        date.getUTCMonth() + 1
+      )}/${date.getUTCFullYear()}`;
+  }
+};
+
 async function fetchFromGuardian(params) {
   const searchParams = new URLSearchParams(params).toString();
   const url = `https://content.guardianapis.com/search?${searchParams}`;
@@ -89,7 +111,7 @@ async function search(search, fromDate, toDate, interval) {
       searchData.push(params);
     } else {
       let resDate = new Date(searchFromDate);
-      results[resDate.toISODateString(interval)] = 0;
+      results[resDate.toFormattedString(interval)] = 0;
     }
 
     switch (interval) {
@@ -114,7 +136,7 @@ async function search(search, fromDate, toDate, interval) {
       let count = response[j].response.total;
       let searchDate = paramsArr[j]["from-date"];
       let resDate = new Date(searchDate);
-      results[resDate.toISODateString(interval)] = count;
+      results[resDate.toFormattedString(interval)] = count;
     }
   }
   return results;
