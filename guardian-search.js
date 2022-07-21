@@ -1,9 +1,10 @@
 const fetch = require("node-fetch");
 const { RateLimit } = require("async-sema");
+require("dotenv").config();
 
 const limit = RateLimit(1000, { uniformDistribution: false });
 
-const apiKey = "test";
+const apiKey = process.env.API_KEY;
 
 let validDays = require("./days.json");
 let validMonths = require("./months.json");
@@ -84,6 +85,7 @@ async function search(search, fromDate, toDate, interval) {
         "to-date": searchToDate,
         q: search,
       };
+      console.log(params);
       searchData.push(params);
     } else {
       let resDate = new Date(searchFromDate);
