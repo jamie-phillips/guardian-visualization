@@ -41,16 +41,16 @@ searchButton.addEventListener("click", getArticles);
 Chart.defaults.font.family = "'Archivo', sans serif";
 const guardianChart = new Chart(chartElement, {
   type: "bar",
-  data: {
-    datasets: [
-      {
-        data: {},
-      },
-    ],
-  },
   options: {
     maintainAspectRatio: false,
     plugins: {
+      title: {
+        display: true,
+        text: 'Number of articles containing the keyword "_____" from dd/mm/yyyy to dd/mm/yyy from The Guardian.',
+        font: {
+          size: 18,
+        },
+      },
       legend: {
         display: false,
       },
@@ -99,12 +99,11 @@ function changeInterval(interval, button) {
 }
 
 async function getArticles() {
-  guardianChart.data.datasets.pop();
+  guardianChart.data.datasets = [];
   guardianChart.update();
   let search = searchInput.value;
   let fromDate = fromDatePicker.getDate();
   let toDate = toDatePicker.getDate();
-  console.log(fromDate);
   let interval = pickLevel;
 
   const data = { search, fromDate, toDate, interval };
@@ -112,9 +111,11 @@ async function getArticles() {
   let response = await fetch(url);
   let jsonResponse = await response.json();
 
+  guardianChart.options.plugins.title.text = `Number of articles containing the keyword "${search}" from ${fromDateInput.value} to ${toDateInput.value} from The Guardian.`;
+  guardianChart.data.labels = jsonResponse["x"];
   guardianChart.data.datasets.push({
-    data: jsonResponse,
     backgroundColor: primaryColour,
+    data: jsonResponse["y"],
   });
   guardianChart.update();
 }

@@ -17,6 +17,10 @@ app.get("/api", async (req, res) => {
   const search = req.query.search;
   const interval = req.query.interval;
   let searchRes = await guardian.search(search, fromDate, toDate, interval);
-  res.json(searchRes);
+  if (searchRes == 500) {
+    res.status(500);
+  } else {
+    res.json(searchRes);
+  }
   console.log("Response sent");
 });

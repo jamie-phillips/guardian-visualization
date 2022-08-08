@@ -2,7 +2,7 @@ const fetch = require("node-fetch");
 const { RateLimit } = require("async-sema");
 require("dotenv").config();
 
-const limit = RateLimit(1000, { uniformDistribution: false });
+const limit = RateLimit(5, { uniformDistribution: false });
 
 const apiKey = process.env.API_KEY;
 
@@ -78,68 +78,76 @@ async function multipleFetch(params) {
 }
 
 async function search(search, fromDate, toDate, interval) {
-  let currentDate = new Date(fromDate);
-  let endDate = new Date(toDate);
-  let searchData = [];
-  let results = {};
-  while (currentDate <= endDate) {
-    let searchFromDate = currentDate.toISODateString();
-    let searchToDate;
-    switch (interval) {
-      case "year":
-        searchToDate = currentDate.addYears(1).addDays(-1).toISODateString();
-        break;
-      case "month":
-        searchToDate = currentDate.addMonths(1).addDays(-1).toISODateString();
-        break;
-      case "week":
-        break;
-      default:
-        searchToDate = searchFromDate;
-        break;
+  try {
+    let currentDate = new Date(fromDate);
+    let endDate = new Date(toDate);
+    let searchData = [];
+    let results = {};
+    results["x"] = [];
+    results["y"] = [];
+    while (currentDate <= endDate) {
+      let searchFromDate = currentDate.toISODateString();
+      let searchToDate;
+      switch (interval) {
+        case "year":
+          searchToDate = currentDate.addYears(1).addDays(-1).toISODateString();
+          break;
+        case "month":
+          searchToDate = currentDate.addMonths(1).addDays(-1).toISODateString();
+          break;
+        case "week":
+          break;
+        default:
+          searchToDate = searchFromDate;
+          break;
+      }
+
+      if (checkDate(currentDate, interval)) {
+        const params = {
+          "api-key": apiKey,
+          "page-size": 0,
+          "from-date": searchFromDate,
+          "to-date": searchToDate,
+          q: search,
+        };
+        searchData.push(params);
+      } else {
+        let resDate = new Date(searchFromDate);
+        results["x"].push(resDate.toFormattedString(interval));
+        results["y"].push(0);
+      }
+
+      switch (interval) {
+        case "year":
+          currentDate = currentDate.addYears(1);
+          break;
+        case "month":
+          currentDate = currentDate.addMonths(1);
+          break;
+        case "week":
+          break;
+        default:
+          currentDate = currentDate.addDays(1);
+          break;
+      }
     }
 
-    if (checkDate(currentDate, interval)) {
-      const params = {
-        "api-key": apiKey,
-        "page-size": 0,
-        "from-date": searchFromDate,
-        "to-date": searchToDate,
-        q: search,
-      };
-      console.log(params);
-      searchData.push(params);
-    } else {
-      let resDate = new Date(searchFromDate);
-      results[resDate.toFormattedString(interval)] = 0;
+    for (let i = 0; i < searchData.length; i += 50) {
+      const paramsArr = searchData.slice(i, i + 50);
+      let response = await multipleFetch(paramsArr);
+      for (let j = 0; j < paramsArr.length; j++) {
+        let count = response[j].response.total;
+        let searchDate = paramsArr[j]["from-date"];
+        let resDate = new Date(searchDate);
+        results["x"].push(resDate.toFormattedString(interval));
+        results["y"].push(count);
+      }
     }
-
-    switch (interval) {
-      case "year":
-        currentDate = currentDate.addYears(1);
-        break;
-      case "month":
-        currentDate = currentDate.addMonths(1);
-        break;
-      case "week":
-        break;
-      default:
-        currentDate = currentDate.addDays(1);
-        break;
-    }
+    return results;
+  } catch (error) {
+    console.log(error);
+    return 500;
   }
-
-  for (let i = 0; i < searchData.length; i += 50) {
-    const paramsArr = searchData.slice(i, i + 50);
-    let response = await multipleFetch(paramsArr);
-    for (let j = 0; j < paramsArr.length; j++) {
-      let count = response[j].response.total;
-      let searchDate = paramsArr[j]["from-date"];
-      let resDate = new Date(searchDate);
-      results[resDate.toFormattedString(interval)] = count;
-    }
-  }
-  return results;
 }
 
 function checkDate(date, interval) {
