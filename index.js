@@ -17,11 +17,16 @@ app.get("/api", async (req, res) => {
   const toDate = req.query.toDate;
   const search = req.query.search;
   const interval = req.query.interval;
-  let searchRes = await guardian.search(search, fromDate, toDate, interval);
-  if (searchRes == 500) {
-    res.status(500);
+  if (fromDate != "" && toDate != "" && search != "" && interval != "") {
+    let searchRes = await guardian.search(search, fromDate, toDate, interval);
+    if (searchRes == 500) {
+      res.status(500).end();
+    } else {
+      res.json(searchRes);
+    }
   } else {
-    res.json(searchRes);
+    console.log("invalid inputs");
+    res.status(400).end();
   }
   console.log("Response sent");
 });

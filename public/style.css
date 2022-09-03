@@ -1,6 +1,6 @@
 :root {
   --primary-colour: #1d1486;
-  --secondary-colour: #5265ff;
+  --secondary-colour: #d2801c;
 }
 
 * {
@@ -16,50 +16,18 @@ body {
   padding: 0;
 }
 
-aside {
-  background-color: var(--primary-colour);
-  float: left;
-  width: 20%;
-  height: 100vh;
-}
-
 h1 {
   color: white;
   text-align: center;
   margin: 40px 0px;
 }
 
-#inputs {
-  margin: 0px 20px 20px 20px;
-  display: flex;
-  flex-direction: column;
-}
-
-#inputs > * {
-  margin: 3px;
-  height: 25px;
-}
-
-#interval-btn-group {
-  display: flex;
-  justify-content: space-between;
-}
-
-#interval-btn-group button {
-  background-color: white;
-  cursor: pointer; /* Pointer/hand icon */
-  width: 100%;
-}
-
-/* Clear floats (clearfix hack) */
-#interval-btn-group:after {
-  content: "";
-  clear: both;
-  display: table;
-}
-
-#interval-btn-group button:not(:last-child) {
-  border-right: none; /* Prevent double borders */
+/* PAGE SECTIONS */
+#aside {
+  background-color: var(--primary-colour);
+  float: left;
+  width: 20%;
+  height: 100vh;
 }
 
 #main {
@@ -71,11 +39,69 @@ h1 {
   justify-content: center;
 }
 
+/* INPUTS */
+#inputs {
+  margin: 0px 20px 20px 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+#inputs > * {
+  margin: 4px;
+  height: 25px;
+}
+
+/* INTERVAL BUTTON GROUP */
+#interval-btn-group {
+  display: flex;
+  justify-content: space-between;
+}
+
+#interval-btn-group button {
+  background-color: white;
+  cursor: pointer; /* Pointer/hand icon */
+  width: 100%;
+}
+
+/* Clear floats after button group */
+#interval-btn-group:after {
+  content: "";
+  clear: both;
+  display: table;
+}
+
+#interval-btn-group button:not(:last-child) {
+  border-right: none; /* Prevent double borders */
+}
+
+/* LOADING ANIMATION */
+#loading {
+  width: 20px;
+  height: 20px;
+  border: 5px solid #f3f3f321;
+  border-top: 6px solid white;
+  border-radius: 100%;
+  align-self: center;
+  visibility: hidden;
+  animation: spin 1s infinite linear;
+}
+
+#loading.display {
+  visibility: visible !important;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* CHART */
 #chart-container {
   position: relative;
   width: 90%;
   height: 90%;
-}
-
-#guardian-chart {
 }

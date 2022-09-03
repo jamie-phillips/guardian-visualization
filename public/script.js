@@ -12,6 +12,7 @@ const yearButton = document.getElementById("year-btn");
 const fromDateInput = document.getElementById("fromDate");
 const toDateInput = document.getElementById("toDate");
 const searchButton = document.getElementById("search-btn");
+const loadingDiv = document.getElementById("loading");
 const chartElement = document.getElementById("guardian-chart").getContext("2d");
 
 let pickLevel;
@@ -103,7 +104,9 @@ function changeInterval(interval, button) {
 }
 
 // getArticles calls api request to /api endpoint to get graph data based off of guardian article data
-async function getArticles()
+async function getArticles() {
+  loadingDiv.classList.add("display");
+  searchButton.disabled = true;
   guardianChart.data.datasets = [];
   guardianChart.update();
   let search = searchInput.value;
@@ -112,15 +115,21 @@ async function getArticles()
   let interval = pickLevel;
 
   const data = { search, fromDate, toDate, interval };
+
   let url = "/api?" + new URLSearchParams(data).toString();
   let response = await fetch(url);
-  let jsonResponse = await response.json();
-
-  guardianChart.options.plugins.title.text = `Number of articles containing the keyword "${search}" from ${fromDateInput.value} to ${toDateInput.value} from The Guardian.`;
-  guardianChart.data.labels = jsonResponse["x"];
-  guardianChart.data.datasets.push({
-    backgroundColor: primaryColour,
-    data: jsonResponse["y"],
-  });
-  guardianChart.update();
+  if (response.status >= 200 && response.status <= 299) {
+    let jsonResponse = await response.json();
+    guardianChart.options.plugins.title.text = `Number of articles containing the keyword "${search}" from ${fromDateInput.value} to ${toDateInput.value} from The Guardian.`;
+    guardianChart.data.labels = jsonResponse["x"];
+    guardianChart.data.datasets.push({
+      backgroundColor: primaryColour,
+      data: jsonResponse["y"],
+    });
+    guardianChart.update();
+  } else {
+    console.log(response.status, response.statusText);
+  }
+  loadingDiv.classList.remove("display");
+  searchButton.disabled = false;
 }
