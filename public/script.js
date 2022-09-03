@@ -16,6 +16,7 @@ const chartElement = document.getElementById("guardian-chart").getContext("2d");
 
 let pickLevel;
 
+// sets date pickers as Datepicker objects from vanillajs-datepicker
 const fromDatePicker = new Datepicker(fromDateInput, {
   pickLevel: 0,
   autohide: true,
@@ -25,6 +26,7 @@ const toDatePicker = new Datepicker(toDateInput, {
   autohide: true,
 });
 
+// addEventListeners to day, month, year button group
 changeInterval("day", dayButton);
 dayButton.addEventListener("click", function () {
   changeInterval("day", dayButton);
@@ -38,6 +40,7 @@ yearButton.addEventListener("click", function () {
 
 searchButton.addEventListener("click", getArticles);
 
+// setup guardian chart
 Chart.defaults.font.family = "'Archivo', sans serif";
 const guardianChart = new Chart(chartElement, {
   type: "bar",
@@ -63,6 +66,7 @@ const guardianChart = new Chart(chartElement, {
   },
 });
 
+// changeInterval changes the pickLevel of the date pickers and also the format of the date picker placeholders
 function changeInterval(interval, button) {
   let format;
   switch (interval) {
@@ -98,6 +102,7 @@ function changeInterval(interval, button) {
   button.style.background = "lightgray";
 }
 
+// getArticles calls api request to /api endpoint to get graph data based off of guardian article data
 async function getArticles() {
   guardianChart.data.datasets = [];
   guardianChart.update();
