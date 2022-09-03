@@ -103,7 +103,7 @@ function changeInterval(interval, button) {
 }
 
 // getArticles calls api request to /api endpoint to get graph data based off of guardian article data
-async function getArticles() {
+async function getArticles()
   guardianChart.data.datasets = [];
   guardianChart.update();
   let search = searchInput.value;
