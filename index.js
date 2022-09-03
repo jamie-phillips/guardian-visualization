@@ -10,6 +10,7 @@ app.listen(port, async () => {
 
 app.use(express.static("public"));
 
+// open api end point for guardian search
 app.get("/api", async (req, res) => {
   console.log("Request recieved");
   const fromDate = req.query.fromDate;
