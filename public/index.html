@@ -3,7 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
+    />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -17,12 +20,13 @@
     />
     <script src="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.2.0/dist/js/datepicker-full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.8.0/dist/chart.min.js"></script>
-    <script src="script.js" async></script>
+    <script src="script.js" async onload="bodyResize()"></script>
 
     <title>Guardian Visualisation</title>
   </head>
-  <body>
-    <aside id="aside">
+  <body onresize="bodyResize()">
+    <aside id="overlay"></aside>
+    <aside id="sidebar">
       <h1>Guardian Visualisation</h1>
       <div id="inputs">
         <input
@@ -41,8 +45,15 @@
           name="fromDate"
           id="fromDate"
           placeholder="dd/mm/yyyy"
+          inputmode="none"
         />
-        <input type="text" name="toDate" id="toDate" placeholder="dd/mm/yyyy" />
+        <input
+          type="text"
+          name="toDate"
+          id="toDate"
+          placeholder="dd/mm/yyyy"
+          inputmode="none"
+        />
         <button id="search-btn">Search</button>
         <div id="loading"></div>
       </div>

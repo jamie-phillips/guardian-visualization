@@ -12,18 +12,20 @@ const yearButton = document.getElementById("year-btn");
 const fromDateInput = document.getElementById("fromDate");
 const toDateInput = document.getElementById("toDate");
 const searchButton = document.getElementById("search-btn");
+const datePickers = Array.from(document.getElementsByClassName("datepicker"));
 const loadingDiv = document.getElementById("loading");
 const chartElement = document.getElementById("guardian-chart").getContext("2d");
 
 let pickLevel;
-
 // sets date pickers as Datepicker objects from vanillajs-datepicker
 const fromDatePicker = new Datepicker(fromDateInput, {
   pickLevel: 0,
+  startView: 0,
   autohide: true,
 });
 const toDatePicker = new Datepicker(toDateInput, {
   pickLevel: 0,
+  startView: 0,
   autohide: true,
 });
 
@@ -67,6 +69,27 @@ const guardianChart = new Chart(chartElement, {
   },
 });
 
+datePickers.forEach((datePicker) => {
+  datePicker.style.color = "pink";
+  console.log("test");
+});
+
+function bodyResize() {
+  defaultSize = 6;
+  if (window.outerWidth > 1200) {
+    defaultSize = 14;
+  } else if (window.outerWidth > 800) {
+    defaultSize = 12;
+  } else if (window.outerWidth > 400) {
+    defaultSize = 10;
+  } else if (window.outerWidth > 333) {
+    defaultSize = 9;
+  }
+  Chart.defaults.font.size = defaultSize;
+  guardianChart.options.plugins.title.font.size = defaultSize * 1.2;
+  guardianChart.update("none");
+}
+
 // changeInterval changes the pickLevel of the date pickers and also the format of the date picker placeholders
 function changeInterval(interval, button) {
   let format;
@@ -90,10 +113,12 @@ function changeInterval(interval, button) {
 
   fromDatePicker.setOptions({
     pickLevel: pickLevel,
+    startView: pickLevel,
     format: format,
   });
   toDatePicker.setOptions({
     pickLevel: pickLevel,
+    startView: pickLevel,
     format: format,
   });
   pickLevel = interval;
@@ -105,6 +130,7 @@ function changeInterval(interval, button) {
 
 // getArticles calls api request to /api endpoint to get graph data based off of guardian article data
 async function getArticles() {
+  document.body.requestFullscreen();
   loadingDiv.classList.add("display");
   searchButton.disabled = true;
   guardianChart.data.datasets = [];
