@@ -1,5 +1,4 @@
 const fetch = require("node-fetch");
-const { RateLimit } = require("async-sema");
 require("dotenv").config();
 
 // api key for Guardian Open Platform API
