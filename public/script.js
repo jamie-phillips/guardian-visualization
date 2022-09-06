@@ -50,6 +50,21 @@ const guardianChart = new Chart(chartElement, {
   options: {
     maintainAspectRatio: false,
     plugins: {
+      zoom: {
+        pan: {
+          enabled: true,
+          mode: "x",
+        },
+        zoom: {
+          wheel: {
+            enabled: true,
+          },
+          pinch: {
+            enabled: true,
+          },
+          mode: "x",
+        },
+      },
       title: {
         display: true,
         text: 'Number of articles containing the keyword "_____" from dd/mm/yyyy to dd/mm/yyy from The Guardian.',
@@ -130,7 +145,6 @@ function changeInterval(interval, button) {
 
 // getArticles calls api request to /api endpoint to get graph data based off of guardian article data
 async function getArticles() {
-  document.body.requestFullscreen();
   loadingDiv.classList.add("display");
   searchButton.disabled = true;
   guardianChart.data.datasets = [];
@@ -152,6 +166,7 @@ async function getArticles() {
       backgroundColor: primaryColour,
       data: jsonResponse["y"],
     });
+    guardianChart.resetZoom();
     guardianChart.update();
   } else {
     console.log(response.status, response.statusText);
