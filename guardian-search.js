@@ -5,9 +5,9 @@ require("dotenv").config();
 const apiKey = process.env.API_KEY;
 
 // JSON lists of days/months/years which have articles (eg. the ones to search)
-let validDays = require("./days.json");
-let validMonths = require("./months.json");
-let validYears = require("./years.json");
+let validDays = require("./dates/days.json");
+let validMonths = require("./dates/months.json");
+let validYears = require("./dates/years.json");
 
 // function to add passed days to a date (uses UTC date to avoid timezone issues)
 Date.prototype.addDays = function (days) {
