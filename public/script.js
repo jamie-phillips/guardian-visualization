@@ -83,6 +83,7 @@ const guardianChart = new Chart(chartElement, {
     },
   },
 });
+guardianChart.update("none");
 
 datePickers.forEach((datePicker) => {
   datePicker.style.color = "pink";
