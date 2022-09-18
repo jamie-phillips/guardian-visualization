@@ -5,6 +5,7 @@ const secondaryColour = getComputedStyle(
   document.documentElement
 ).getPropertyValue("--secondary-colour");
 
+let guardianChart;
 const searchInput = document.getElementById("search");
 const dayButton = document.getElementById("day-btn");
 const monthButton = document.getElementById("month-btn");
@@ -44,46 +45,48 @@ yearButton.addEventListener("click", function () {
 searchButton.addEventListener("click", getArticles);
 
 // setup guardian chart
-Chart.defaults.font.family = "'Archivo', sans serif";
-const guardianChart = new Chart(chartElement, {
-  type: "bar",
-  options: {
-    maintainAspectRatio: false,
-    plugins: {
-      zoom: {
-        pan: {
-          enabled: true,
-          mode: "x",
-        },
+document.fonts.ready.then(() => {
+  Chart.defaults.font.family = "'Archivo', sans serif";
+  guardianChart = new Chart(chartElement, {
+    type: "bar",
+    options: {
+      maintainAspectRatio: false,
+      plugins: {
         zoom: {
-          wheel: {
+          pan: {
             enabled: true,
+            mode: "x",
           },
-          pinch: {
-            enabled: true,
+          zoom: {
+            wheel: {
+              enabled: true,
+            },
+            pinch: {
+              enabled: true,
+            },
+            mode: "x",
           },
-          mode: "x",
+        },
+        title: {
+          display: true,
+          text: 'Number of articles containing the keyword "_____" from dd/mm/yyyy to dd/mm/yyy from The Guardian.',
+          font: {
+            size: 18,
+          },
+        },
+        legend: {
+          display: false,
         },
       },
-      title: {
-        display: true,
-        text: 'Number of articles containing the keyword "_____" from dd/mm/yyyy to dd/mm/yyy from The Guardian.',
-        font: {
-          size: 18,
+      scales: {
+        y: {
+          beginAtZero: true,
         },
       },
-      legend: {
-        display: false,
-      },
     },
-    scales: {
-      y: {
-        beginAtZero: true,
-      },
-    },
-  },
+  });
+  bodyResize();
 });
-guardianChart.update("none");
 
 datePickers.forEach((datePicker) => {
   datePicker.style.color = "pink";
