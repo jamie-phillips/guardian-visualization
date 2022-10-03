@@ -55,6 +55,13 @@ h1 {
   justify-content: center;
 }
 
+/* CHART */
+#chart-container {
+  position: relative;
+  width: 90%;
+  height: 90%;
+}
+
 /* INPUTS */
 #inputs {
   margin: 0px 20px 20px 20px;
@@ -107,13 +114,6 @@ h1 {
   to {
     transform: rotate(360deg);
   }
-}
-
-/* CHART */
-#chart-container {
-  position: relative;
-  width: 90%;
-  height: 90%;
 }
 
 /* MEDIA QUERIES */
