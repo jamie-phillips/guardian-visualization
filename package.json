@@ -94,7 +94,7 @@
     "ms": "^2.0.0",
     "negotiator": "^0.6.3",
     "node-domexception": "^1.0.0",
-    "node-fetch": "^3.2.10",
+    "node-fetch": "^2.6.7",
     "node-schedule": "^2.1.0",
     "nodemon": "^2.0.20",
     "nopt": "^1.0.10",
