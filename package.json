@@ -79,7 +79,7 @@
     "keyv": "^4.5.0",
     "long-timeout": "^0.1.1",
     "lowercase-keys": "^3.0.0",
-    "luxon": "^1.28.0",
+    "luxon": "^2.5.2",
     "media-typer": "^0.3.0",
     "memory-pager": "^1.5.0",
     "merge-descriptors": "^1.0.1",
